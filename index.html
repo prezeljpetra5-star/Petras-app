@@ -15,7 +15,8 @@
 <style>
 :root{
   --bg:#EDE9E1; --surface:#F6F3ED; --surface2:#E4DFD4; --line:#D5CEC0;
-  --text:#35322B; --muted:#6F6858; --mint:#5F6B50; --amber:#8A6A2C; --red:#8E5A46;
+  --text:#35322B; --muted:#6F6858; --mint:#5F6B50; --amber:#B8862B; --red:#A6392A;
+  --near:#B8862B;
   --bar-bg:#DDD6C8; --zero:#BDB4A3; --chip-text:#4A463C; --label:#7A7263;
   --subtle:#4E4A40; --press:#E2DCD0; --on-accent:#F6F3ED; --accent-press:#4E5842;
   --ok:#5F6B50; --ok-bg:#E3E7DC; --ok-line:#A8B599;
@@ -110,8 +111,8 @@ button{border:0;background:none;cursor:pointer;padding:0}
 .hero .left{display:none}
 
 /* glavnik meseca */
-.comb{display:flex;align-items:flex-end;gap:2px;height:56px;margin:20px 0 0}
-.comb i{flex:1;background:var(--ok);border-radius:1.5px;min-height:2px;
+.comb{display:flex;align-items:flex-end;gap:2.5px;height:64px;margin:22px 0 0}
+.comb i{flex:1;background:var(--ok);border-radius:2px;min-height:3px;
   transform-origin:bottom;animation:rise .4s cubic-bezier(.2,.8,.3,1) both}
 .comb i.over{background:var(--red)}
 .comb i.none{background:var(--bar-bg)}
@@ -121,7 +122,14 @@ button{border:0;background:none;cursor:pointer;padding:0}
 .combleg{display:flex;justify-content:space-between;margin-top:8px;
   font-size:10px;color:var(--label);letter-spacing:.1em;text-transform:uppercase}
 
-.bar{position:relative;height:3px;background:var(--bar-bg);border-radius:99px;overflow:hidden}
+.bar{position:relative;height:8px;background:var(--bar-bg);border-radius:99px;overflow:hidden}
+.bar .tick{position:absolute;top:0;bottom:0;width:2.5px;border-radius:2px;
+  background:var(--bg);box-shadow:0 0 0 .5px var(--muted);z-index:2}
+.bar>i.pastplan{background-image:repeating-linear-gradient(115deg,
+  rgba(255,255,255,.45) 0 4px,transparent 4px 9px)}
+.over-amt{color:var(--red);font-weight:650}
+.comb i.over{background:var(--red);
+  background-image:repeating-linear-gradient(115deg,rgba(255,255,255,.45) 0 2.5px,transparent 2.5px 6px)}
 .bar>i{position:absolute;inset:0 auto 0 0;border-radius:99px;transition:width .4s ease}
 .pace{position:absolute;top:-3px;bottom:-3px;width:1px;background:var(--muted);opacity:.7}
 .paceleg{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);
@@ -130,31 +138,42 @@ button{border:0;background:none;cursor:pointer;padding:0}
 /* skupine */
 .grp{border-top:1px solid var(--line);padding:14px 0 4px}
 .grp:first-of-type{border-top:0}
-.grow{display:flex;align-items:baseline;gap:12px;width:100%;text-align:left;padding-bottom:10px}
+.grow{display:flex;align-items:baseline;gap:12px;width:100%;text-align:left;padding-bottom:12px}
 .grow .nm{flex:1;font-size:15px;font-weight:500;min-width:0;overflow:hidden;
   text-overflow:ellipsis;white-space:nowrap;letter-spacing:-.01em}
-.grow .amt{font-size:13px;color:var(--muted);white-space:nowrap;font-family:var(--f-num)}
+.grow .amt{font-size:12.5px;color:var(--muted);white-space:nowrap;font-family:var(--f-num)}
 .grow .amt b{color:var(--text);font-weight:500}
 .grow .car{color:var(--label);font-size:9px;transition:transform .2s;flex:0 0 8px}
 .grow[aria-expanded="true"] .car{transform:rotate(90deg)}
 .subs{display:none;padding:8px 0 4px}
 .subs.open{display:block}
-.sub{display:flex;align-items:center;gap:12px;padding:7px 0}
+.sub{display:flex;align-items:center;gap:14px;padding:9px 0}
 .sub .nm{flex:1;font-size:13px;color:var(--subtle);min-width:0;overflow:hidden;
   text-overflow:ellipsis;white-space:nowrap}
-.sub .bar{width:44px;height:3px;flex:0 0 44px}
-.sub .amt{font-size:12px;color:var(--muted);white-space:nowrap;font-family:var(--f-num)}
+.sub .bar{width:64px;height:7px;flex:0 0 64px}
+.sub .amt{font-size:11.5px;color:var(--muted);white-space:nowrap;font-family:var(--f-num)}
 
 /* trend */
-.trend{display:flex;align-items:center;gap:12px;width:100%;padding:7px 0;text-align:left}
-.trend .m{font-size:11px;color:var(--muted);flex:0 0 52px;letter-spacing:.06em;
+.trend{display:flex;align-items:center;gap:14px;width:100%;padding:9px 0;text-align:left}
+.trend .m{font-size:11px;color:var(--muted);flex:0 0 46px;letter-spacing:.06em;
   text-transform:uppercase}
 .trend.cur .m{color:var(--mint);font-weight:700}
-.trend .bar{flex:1;height:3px}
-.trend .v{font-size:12px;color:var(--subtle);flex:0 0 58px;text-align:right;
+.trend .bar{flex:1;height:8px}
+.trend .v{font-size:11.5px;color:var(--subtle);flex:0 0 76px;text-align:right;
   font-family:var(--f-num)}
 
 /* ---------- zgodovina: trak z računa ---------- */
+.searchwrap{position:relative;padding:0 20px 12px}
+.searchwrap input{width:100%;background:var(--surface2);border:1px solid var(--line);
+  border-radius:12px;padding:11px 38px 11px 14px;font-size:14px}
+.searchwrap input::placeholder{color:var(--label)}
+.searchwrap input:focus{outline:0;border-color:var(--mint)}
+.searchwrap button{position:absolute;right:26px;top:50%;transform:translateY(-56%);
+  width:28px;height:28px;color:var(--label);font-size:13px;display:none;border-radius:50%}
+.searchwrap.has button{display:block}
+.found{font-size:11px;color:var(--label);letter-spacing:.1em;text-transform:uppercase;
+  padding:2px 0 4px}
+.found b{color:var(--subtle);font-weight:700}
 .day{margin-top:26px}
 .dayhead{display:flex;justify-content:space-between;align-items:baseline;
   padding:0 0 4px;font-size:10px;color:var(--label);letter-spacing:.12em;
@@ -176,7 +195,7 @@ button{border:0;background:none;cursor:pointer;padding:0}
 .planrow:last-child{border-bottom:0}
 .planrow .nm{flex:1;font-size:14.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;
   white-space:nowrap;text-align:left;letter-spacing:-.01em}
-.planrow input{width:76px;background:transparent;border:0;border-bottom:1px solid var(--line);
+.planrow input{width:88px;background:transparent;border:0;border-bottom:1px solid var(--line);
   border-radius:0;padding:6px 2px;text-align:right;font-family:var(--f-num);font-size:14px}
 .planrow input:focus{outline:0;border-bottom-color:var(--mint)}
 .planrow .del{color:var(--label);font-size:15px;padding:6px 0 6px 8px}
@@ -262,6 +281,10 @@ button{border:0;background:none;cursor:pointer;padding:0}
       <h1>Zgodovina</h1>
       <div class="monthnav"><button data-m="-1">‹</button><span class="lbl" id="mLbl2"></span><button data-m="1">›</button></div>
     </div>
+    <div class="searchwrap">
+      <input id="q" type="search" placeholder="Poišči po komentarju ali kategoriji" autocomplete="off">
+      <button id="qx" aria-label="Počisti iskanje">✕</button>
+    </div>
     <div class="scroll" id="histBody"></div>
   </section>
 
@@ -329,7 +352,18 @@ function groups(){const g=[];D.cats.forEach(c=>{if(!g.includes(c.group))g.push(c
 function catById(id){return D.cats.find(c=>c.id===id);}
 function monthEntries(m){return D.entries.filter(e=>e.date.slice(0,7)===m);}
 function spentBy(m){const o={};monthEntries(m).forEach(e=>{o[e.cat]=(o[e.cat]||0)+e.amt});return o;}
-function planTotal(){return D.cats.reduce((s,c)=>s+(+c.plan||0),0);}
+function planTotal(){return D.cats.reduce((s,c)=>s+(c.hidden?0:(+c.plan||0)),0);}
+function barHTML(sp,pl){
+  if(!pl)return '<i style="width:'+(sp>0?100:0)+'%;background:var(--muted);opacity:.45"></i>';
+  const maxv=Math.max(pl,sp);
+  const fill=Math.min(100,sp/maxv*100);
+  const tick=pl/maxv*100;
+  const cez=sp>pl;
+  const col=cez?"var(--red)":(sp/pl>=.8?"var(--near)":"var(--ok)");
+  return '<i class="'+(cez?"pastplan":"")+'" style="width:'+fill.toFixed(1)+'%;background:'+col+'"></i>'+
+         '<span class="tick" style="left:'+tick.toFixed(1)+'%"></span>';
+}
+function cezTxt(sp,pl){return (pl&&sp>pl)?' <span class="over-amt">+'+eur(sp-pl)+'</span>':'';}
 function barColor(sp,pl){if(!pl)return sp>0?"#5E7175":"var(--line)";
   const r=sp/pl; return r>=1?"var(--red)":r>=.8?"var(--amber)":"var(--mint)";}
 
@@ -337,9 +371,11 @@ function barColor(sp,pl){if(!pl)return sp>0?"#5E7175":"var(--line)";
 function renderCats(){
   const w=$("#catWrap");w.innerHTML="";
   groups().forEach(g=>{
+    const vidne=D.cats.filter(c=>c.group===g&&!c.hidden);
+    if(!vidne.length)return;
     w.appendChild(el("div","grouplbl",g));
     const grid=el("div","catgrid");
-    D.cats.filter(c=>c.group===g).forEach(c=>{
+    vidne.forEach(c=>{
       const b=el("button","cat"+(draft.cat===c.id?" sel":""),c.name);
       b.onclick=()=>{draft.cat=c.id;renderCats();paintDraft();};
       grid.appendChild(b);
@@ -438,8 +474,9 @@ function renderOver(){
 
   const hero=el("div","card hero");
   let h='<div class="row1"><span class="spent">'+eur(spent)+'</span></div>'+
-    '<div class="of">od '+eur0(plan)+' plana · <b>'+
-    (left<0?eur0(-left)+" čez":eur0(left)+" ostane")+'</b></div>';
+    '<div class="of">od '+eur(plan)+' plana · '+
+    (left<0?'<span class="over-amt">'+eur(-left)+' čez plan</span>'
+           :'<b>'+eur(left)+' ostane</b>')+'</div>';
 
   /* glavnik meseca: en stolpič na dan, višina = poraba tistega dne */
   const dnevi=[];
@@ -461,33 +498,33 @@ function renderOver(){
     (isNow?dayNow+". · danes":"poraba po dnevih")+'</span><span>'+dim+'.</span></div>';
   h+='<div class="paceleg"><span>'+monthEntries(month).length+' vnosov</span><span>'+
     (isNow&&daysLeft>0
-      ? "še "+daysLeft+" dni · "+eur0(Math.max(0,left)/daysLeft)+"/dan"
-      : eur0(spent/dim)+"/dan povprečno")+'</span></div>';
+      ? "še "+daysLeft+" dni · "+eur(Math.max(0,left)/daysLeft)+"/dan"
+      : eur(spent/dim)+"/dan povprečno")+'</span></div>';
   hero.innerHTML=h;
   body.appendChild(hero);
 
   const gc=el("div","card");
-  const gs=groups().filter(g=>D.cats.filter(c=>c.group===g).some(c=>(sp[c.id]||0)>0||+c.plan>0));
+  const gs=groups().filter(g=>D.cats.filter(c=>c.group===g).some(c=>(sp[c.id]||0)>0||(!c.hidden&&+c.plan>0)));
   if(!gs.length)gc.innerHTML='<div class="empty">Ta mesec še ni vnosov.<br>Odpri <b>Vnos</b> in zabeleži prvi strošek.</div>';
   gs.forEach(g=>{
     const cs=D.cats.filter(c=>c.group===g);
     const gsp=cs.reduce((s,c)=>s+(sp[c.id]||0),0);
-    const gpl=cs.reduce((s,c)=>s+(+c.plan||0),0);
+    const gpl=cs.reduce((s,c)=>s+(c.hidden?0:(+c.plan||0)),0);
     const box=el("div","grp");
     const btn=el("button","grow");
     btn.setAttribute("aria-expanded",!!openGroups[g]);
     btn.innerHTML='<span class="car">▶</span><span class="nm">'+esc(g)+'</span>'+
-      '<span class="amt num"><b>'+eur0(gsp)+'</b>'+(gpl?" / "+eur0(gpl):"")+'</span>';
+      '<span class="amt num"><b>'+eur(gsp)+'</b>'+(gpl?" / "+eur(gpl):"")+cezTxt(gsp,gpl)+'</span>';
     const bar=el("div","bar");
-    bar.innerHTML='<i style="width:'+Math.min(100,gpl?gsp/gpl*100:(gsp?100:0))+'%;background:'+barColor(gsp,gpl)+'"></i>';
+    bar.innerHTML=barHTML(gsp,gpl);
     const subs=el("div","subs"+(openGroups[g]?" open":""));
     cs.forEach(c=>{
-      const s=sp[c.id]||0,pl=+c.plan||0;
+      const s=sp[c.id]||0,pl=c.hidden?0:(+c.plan||0);
       if(!s&&!pl)return;
       const r=el("div","sub");
       r.innerHTML='<span class="nm">'+esc(c.name)+'</span>'+
-        '<span class="bar"><i style="width:'+Math.min(100,pl?s/pl*100:(s?100:0))+'%;background:'+barColor(s,pl)+'"></i></span>'+
-        '<span class="amt">'+eur0(s)+(pl?" / "+eur0(pl):"")+'</span>';
+        '<span class="bar">'+barHTML(s,pl)+'</span>'+
+        '<span class="amt">'+eur(s)+(pl?" / "+eur(pl):"")+cezTxt(s,pl)+'</span>';
       subs.appendChild(r);
     });
     btn.onclick=()=>{openGroups[g]=!openGroups[g];renderOver();};
@@ -510,7 +547,6 @@ function renderOver(){
   const keys=Object.keys(byM).sort();
   if(keys.length>1){
     const show=keys.slice(-12);
-    const max=Math.max.apply(null,show.map(k=>byM[k]));
     const avg=show.reduce((s,k)=>s+byM[k],0)/show.length;
     const t=el("div","card");
     t.appendChild(el("div","sechead","Po mesecih")).style.margin="0 0 8px";
@@ -518,8 +554,8 @@ function renderOver(){
       const [yy,mm]=k.split("-");
       const b=el("button","trend"+(k===month?" cur":""));
       b.innerHTML='<span class="m">'+SHORT[+mm-1]+" "+yy.slice(2)+'</span>'+
-        '<span class="bar"><i style="width:'+(byM[k]/max*100).toFixed(1)+'%;background:'+(byM[k]>planTotal()?"var(--amber)":"var(--mint)")+'"></i></span>'+
-        '<span class="v">'+eur0(byM[k])+'</span>';
+        '<span class="bar">'+barHTML(byM[k],planTotal())+'</span>'+
+        '<span class="v">'+eur(byM[k])+'</span>';
       b.onclick=()=>{month=k;renderOver();renderHist();};
       t.appendChild(b);
     });
@@ -560,8 +596,36 @@ function renderOver(){
 }
 function renderHist(){
   const b=$("#histBody");b.innerHTML="";
-  const es=monthEntries(month).slice().sort((x,y)=>y.date.localeCompare(x.date)||String(y.id).localeCompare(String(x.id)));
-  if(!es.length){b.innerHTML='<div class="empty">Ni vnosov za '+monthLbl(month)+'.</div>';return;}
+  const qEl=$("#q");
+  const q=(qEl?qEl.value:"").trim().toLowerCase();
+  const wrap=document.querySelector(".searchwrap");
+  if(wrap)wrap.classList.toggle("has",!!q);
+
+  /* brez iskanja: tekoči mesec. Z iskanjem: vsi meseci. */
+  let es;
+  if(q){
+    es=D.entries.filter(e=>{
+      const c=catById(e.cat);
+      return (e.note||"").toLowerCase().indexOf(q)>=0 ||
+             (c?(c.name+" "+c.group).toLowerCase().indexOf(q):-1)>=0;
+    });
+  }else{
+    es=monthEntries(month);
+  }
+  es=es.slice().sort((x,y)=>y.date.localeCompare(x.date)||String(y.id).localeCompare(String(x.id)));
+
+  if(!es.length){
+    b.innerHTML=q
+      ? '<div class="empty">Za <b>'+esc(q)+'</b> ni zadetkov.<br>Iskanje gre po komentarjih in imenih kategorij, po vseh mesecih.</div>'
+      : '<div class="empty">Ni vnosov za '+monthLbl(month)+'.</div>';
+    return;
+  }
+  if(q){
+    const vs=es.reduce((a,e)=>a+e.amt,0);
+    const f=el("div","found");
+    f.innerHTML='<b>'+es.length+'</b> zadetkov · skupaj <b>'+eur(vs)+'</b> · vsi meseci';
+    b.appendChild(f);
+  }
   let cur=null,box=null;
   es.forEach(e=>{
     if(e.date!==cur){
@@ -570,12 +634,14 @@ function renderHist(){
       const tot=es.filter(x=>x.date===cur).reduce((s,x)=>s+x.amt,0);
       box=el("div","day");
       const h=el("div","dayhead");
-      h.innerHTML='<span><b>'+d.getDate()+". "+MONTHS[d.getMonth()].toLowerCase()+'</b> · '+DAYS[d.getDay()].toLowerCase()+'</span><span class="num">'+eur(tot)+'</span>';
+      h.innerHTML='<span><b>'+d.getDate()+". "+MONTHS[d.getMonth()].toLowerCase()+
+        (q?" "+d.getFullYear():"")+'</b> · '+DAYS[d.getDay()].toLowerCase()+
+        '</span><span class="num">'+eur(tot)+'</span>';
       box.appendChild(h);b.appendChild(box);
     }
     const c=catById(e.cat);
     const btn=el("button","ent");
-    btn.innerHTML='<span class="dot"></span><span class="t"><span class="c">'+esc(c?c.name:"—")+'</span>'+
+    btn.innerHTML='<span class="t"><span class="c">'+esc(c?c.name:"—")+'</span>'+
       '<span class="n">'+esc(e.note||(c?c.group:""))+'</span></span>'+
       '<span class="a num">'+eur(e.amt)+'</span>';
     btn.onclick=()=>editEntry(e.id);
@@ -612,21 +678,21 @@ function editEntry(id){
 const THEMES={
   lan:{ime:"Lan",vars:{
     "--bg":"#EDE9E1","--surface":"#F6F3ED","--surface2":"#E4DFD4","--line":"#D5CEC0",
-    "--text":"#35322B","--muted":"#6F6858","--mint":"#5F6B50","--amber":"#8A6A2C","--red":"#8E5A46",
+    "--text":"#35322B","--muted":"#6F6858","--mint":"#5F6B50","--amber":"#B8862B","--red":"#A6392A","--near":"#B8862B",
     "--bar-bg":"#DDD6C8","--zero":"#BDB4A3","--chip-text":"#4A463C","--label":"#7A7263",
     "--subtle":"#4E4A40","--press":"#E2DCD0","--on-accent":"#F6F3ED","--accent-press":"#4E5842",
     "--ok":"#5F6B50","--ok-bg":"#E3E7DC","--ok-line":"#A8B599",
     "--warn-bg":"#F1E7D3","--warn-line":"#D3BE92","--warn-text":"#7A5F23"}},
   travertin:{ime:"Travertin",vars:{
     "--bg":"#E5DED2","--surface":"#F1ECE3","--surface2":"#DAD2C4","--line":"#C8BFAD",
-    "--text":"#322E27","--muted":"#6B6354","--mint":"#7E6240","--amber":"#A8813C","--red":"#9C6550",
+    "--text":"#322E27","--muted":"#6B6354","--mint":"#7E6240","--amber":"#B8862B","--red":"#A6392A","--near":"#B8862B",
     "--bar-bg":"#D5CCBB","--zero":"#B8AE9B","--chip-text":"#464137","--label":"#786F5F",
     "--subtle":"#4B463C","--press":"#DDD5C6","--on-accent":"#F1ECE3","--accent-press":"#6A5234",
     "--ok":"#5F6B50","--ok-bg":"#E0E5D8","--ok-line":"#A5B396",
     "--warn-bg":"#EFE4CF","--warn-line":"#D0BA8D","--warn-text":"#745A20"}},
   oljka:{ime:"Oljka",vars:{
     "--bg":"#23261F","--surface":"#2C3028","--surface2":"#383D32","--line":"#454B3D",
-    "--text":"#E7E4D9","--muted":"#979283","--mint":"#A3B08A","--amber":"#C9A468","--red":"#C08872",
+    "--text":"#E7E4D9","--muted":"#979283","--mint":"#A3B08A","--amber":"#E0B45C","--red":"#E0705A","--near":"#E0B45C",
     "--bar-bg":"#31362B","--zero":"#565C4A","--chip-text":"#CFCCC0","--label":"#7E7A6C",
     "--subtle":"#BDBAAE","--press":"#3C4236","--on-accent":"#1E2119","--accent-press":"#8E9C77",
     "--ok":"#A3B08A","--ok-bg":"#2A342A","--ok-line":"#4C5C46",
@@ -687,15 +753,23 @@ function renderPlan(){
     const c1=el("div","card");c1.style.marginTop="6px";
     D.cats.filter(c=>c.group===g).forEach(c=>{
       const r=el("div","planrow");
-      const nm=el("button","nm",c.name);
+      const nm=el("button","nm",c.name+(c.hidden?" · skrita":""));
+      if(c.hidden)nm.style.opacity=".5";
       nm.onclick=()=>renameCat(c.id);
+      const fmtPlan=v=>(Math.round(v*100)/100).toFixed(2).replace(".",",");
       const inp=document.createElement("input");
-      inp.type="text";inp.inputMode="decimal";inp.value=c.plan||0;
-      inp.onchange=()=>{c.plan=parseFloat(String(inp.value).replace(",","."))||0;inp.value=c.plan;save();renderPlan();renderOver();};
+      inp.type="text";inp.inputMode="decimal";inp.value=fmtPlan(+c.plan||0);
+      inp.onfocus=()=>{inp.select();};
+      inp.onchange=()=>{
+        c.plan=parseFloat(String(inp.value).replace(",","."))||0;
+        inp.value=fmtPlan(c.plan);
+        save();renderPlan();renderOver();
+      };
       const del=el("button","del","✕");
       del.onclick=()=>{
         const n=D.entries.filter(e=>e.cat===c.id).length;
-        if(n&&!confirm("Kategorija »"+c.name+"« ima "+n+" vnosov. Brisanje odstrani tudi njih. Nadaljujem?"))return;
+        const v=D.entries.filter(e=>e.cat===c.id).reduce((a,e)=>a+e.amt,0);
+        if(n&&!confirm("»"+c.name+"« ima "+n+" vnosov v vrednosti "+eur(v)+", tudi v preteklih mesecih. Brisanje odstrani vse in spremeni pretekle vsote.\n\nČe jo želiš samo umakniti s tipkovnice, jo raje skrij: tapni ime kategorije.\n\nVseeno izbrišem?"))return;
         D.entries=D.entries.filter(e=>e.cat!==c.id);
         D.cats=D.cats.filter(x=>x.id!==c.id);
         save();renderPlan();renderCats();renderOver();renderHist();
@@ -770,9 +844,22 @@ function addCat(){
 }
 function renameCat(id){
   const c=catById(id);
-  openSheet("Preimenuj",'<div class="fld"><label>Ime kategorije</label><input id="rn" type="text" value="'+esc(c.name)+'"></div>'+
-    '<button class="btn primary" id="ok">Shrani</button>',()=>{
+  const n=D.entries.filter(e=>e.cat===id).length;
+  const vsota=D.entries.filter(e=>e.cat===id).reduce((s,e)=>s+e.amt,0);
+  openSheet("Uredi kategorijo",
+    '<div class="fld"><label>Ime kategorije</label><input id="rn" type="text" value="'+esc(c.name)+'"></div>'+
+    '<button class="btn primary" id="ok">Shrani ime</button>'+
+    '<button class="btn" id="hd">'+(c.hidden?"Vrni med vnose":"Skrij iz vnosa")+'</button>'+
+    '<div class="hint">'+(c.hidden
+      ? "Skrita kategorija se ne pojavi na tipkovnici in ne šteje v plan. Pretekli vnosi ostanejo."
+      : "Skrivanje jo umakne s tipkovnice in iz plana, vseh "+n+" preteklih vnosov ("+eur(vsota)+") pa pusti pri miru. Brisanje jih odstrani.")+
+    '</div>',()=>{
     $("#ok").onclick=()=>{const v=$("#rn").value.trim();if(v){c.name=v;save();renderPlan();renderCats();renderOver();renderHist();}closeSheet();};
+    $("#hd").onclick=()=>{
+      c.hidden=!c.hidden;save();closeSheet();
+      renderPlan();renderCats();renderOver();
+      toast(c.hidden?"Skrita":"Vrnjena med vnose");
+    };
   });
 }
 
@@ -838,6 +925,14 @@ document.querySelectorAll(".monthnav button").forEach(b=>b.onclick=()=>{
   month=ym(new Date(y,m-1+ +b.dataset.m,1));
   renderOver();renderHist();
 });
+let qT;
+document.addEventListener("input",function(ev){
+  if(ev.target&&ev.target.id==="q"){clearTimeout(qT);qT=setTimeout(renderHist,160);}
+});
+document.addEventListener("click",function(ev){
+  if(ev.target&&ev.target.id==="qx"){$("#q").value="";renderHist();}
+});
+
 function renderAll(){renderCats();paintDraft();renderOver();renderHist();renderPlan();}
 
 /* ---------- namestitev na telefon ---------- */

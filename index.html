@@ -359,7 +359,27 @@ button{border:0;background:none;cursor:pointer;padding:0}
 /* podatki uvoženi iz STROŠKI.xlsx */
 const SEED={"cats":[{"g":"Trgovina – hrana","n":"Doma hrana","p":75},{"g":"Trgovina – hrana","n":"Služba hrana","p":75},{"g":"Trgovina – hrana","n":"Wolt + restavracija","p":30},{"g":"Trgovina ostalo","n":"Kozmetika","p":20},{"g":"Trgovina ostalo","n":"Zdravila","p":0},{"g":"Trgovina ostalo","n":"Čistila","p":0},{"g":"Trgovina ostalo","n":"Oblačila","p":0},{"g":"Trgovina ostalo","n":"Ostalo","p":0},{"g":"Vadba","n":"Zen Vital Reformer + fitnes","p":0},{"g":"Terapije","n":"Tjaša","p":0},{"g":"Terapije","n":"Ostalo","p":0},{"g":"Zdravstvo","n":"Dermatolog","p":0},{"g":"Zdravstvo","n":"Zobar","p":0},{"g":"Avto","n":"Gorivo","p":100},{"g":"Avto","n":"Popravila","p":0},{"g":"Avto","n":"Registracija in ostalo","p":0},{"g":"Stanovanje","n":"Najemnina","p":385},{"g":"Stanovanje","n":"Stroški","p":100},{"g":"Potovanja / izleti","n":"Potovanje","p":0},{"g":"Potovanja / izleti","n":"Izlet","p":0},{"g":"Ostali stroški","n":"Telefon","p":0},{"g":"Ostali stroški","n":"Stroški banka","p":7},{"g":"Druženja","n":"Prijatelji / družina","p":50},{"g":"Druženja","n":"Žiga","p":100},{"g":"Druženja","n":"Darila","p":0},{"g":"Ostalo","n":"Ostalo","p":50},{"g":"Ostalo","n":"Magistrska naloga","p":0},{"g":"Ostalo","n":"s.p.","p":0}],"entries":[]};
 
+const RAZLICICA="v13 · 20.8.2026";
 const KEY="stroski-v2";
+const SNAP="stroski-snap";
+
+/* Samodejni posnetki: zadnjih 5 stanj. Rešijo pomoto (izbris, zamenjava, ponastavitev).
+   Ne rešijo, če brskalnik pobriše vse podatke strani. */
+function snapRead(){
+  try{ const v=localStorage.getItem(SNAP); return v?JSON.parse(v):[]; }catch(e){ return []; }
+}
+function snapWrite(a){ try{ localStorage.setItem(SNAP,JSON.stringify(a)); }catch(e){} }
+function snapshot(razlog,vsili){
+  try{
+    if(!D.entries||!D.entries.length)return;
+    const a=snapRead();
+    const zdaj=Date.now();
+    if(!vsili && a.length && zdaj-a[0].t < 10*60*1000) return;
+    a.unshift({t:zdaj,razlog:razlog||"samodejno",n:D.entries.length,
+               data:JSON.stringify({v:2,cats:D.cats,entries:D.entries})});
+    snapWrite(a.slice(0,5));
+  }catch(e){}
+}
 const store={
   async get(){
     try{ if(window.storage){const r=await window.storage.get(KEY,false); return r&&r.value?JSON.parse(r.value):null;} }catch(e){}
@@ -398,7 +418,7 @@ const $=s=>document.querySelector(s);
 const el=(t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;if(x!=null)n.textContent=x;return n;};
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));}
 
-function save(){D.savedAt=new Date().toISOString();store.set(D);}
+function save(){snapshot("samodejno");D.savedAt=new Date().toISOString();store.set(D);}
 function groups(){const g=[];D.cats.forEach(c=>{if(!g.includes(c.group))g.push(c.group)});return g;}
 function catById(id){return D.cats.find(c=>c.id===id);}
 function monthEntries(m){return D.entries.filter(e=>e.date.slice(0,7)===m);}
@@ -859,27 +879,92 @@ function backupSave(){
   D.backupAt=new Date().toISOString();save();
   renderOver();toast("Kopija shranjena");
 }
+function podpis(d,a,n){return d+"|"+(+a).toFixed(2)+"|"+String(n||"").trim().toLowerCase();}
+
 function backupRestore(){
   const f=document.createElement("input");
   f.type="file";
-  /* brez filtra: Androidov izbirnik pogosto skrije .json datoteke */
   f.onchange=()=>{
     const file=f.files&&f.files[0];if(!file)return;
     const rd=new FileReader();
     rd.onload=()=>{
+      let o;
       try{
-        const o=JSON.parse(rd.result);
+        o=JSON.parse(rd.result);
         if(!o||!Array.isArray(o.cats)||!Array.isArray(o.entries))throw 0;
-        if(D.entries.length&&!confirm("Zamenja vse trenutne podatke s "+o.entries.length+" vnosi iz kopije. Nadaljujem?"))return;
-        D=o;save();openGroups={};draft={amt:"",cat:null,date:today(),note:""};
-        month=ym(new Date());
-        renderAll();toast("Obnovljeno · "+o.entries.length+" vnosov");
-      }catch(e){ toast("To ni datoteka s kopijo"); }
+      }catch(e){ toast("To ni datoteka s kopijo"); return; }
+
+      const imam={};
+      D.entries.forEach(e=>{imam[podpis(e.date,e.amt,e.note)]=1;});
+      const novi=o.entries.filter(e=>!imam[podpis(e.date,e.amt,e.note)]);
+
+      openSheet("Varnostna kopija",
+        '<div class="hint" style="margin:0 0 16px">V datoteki je <b>'+o.entries.length+'</b> vnosov, '+
+        'pri tebi jih je <b>'+D.entries.length+'</b>.<br>Takih, ki jih še nimaš: <b>'+novi.length+'</b>.</div>'+
+        '<button class="btn primary" id="mrg">Dodaj samo manjkajoče ('+novi.length+')</button>'+
+        '<button class="btn" id="rep">Zamenjaj vse s kopijo</button>'+
+        '<div class="hint">Dodajanje pusti tvoje sedanje vnose pri miru. Zamenjava jih izbriše in postavi vsebino datoteke.</div>',
+        ()=>{
+        $("#mrg").onclick=()=>{
+          const kljuc=c=>(c.group+"|"+c.name).toLowerCase();
+          const moje={};D.cats.forEach(c=>{moje[kljuc(c)]=c.id;});
+          const pres={};
+          o.cats.forEach(c=>{
+            const k=kljuc(c);
+            if(!moje[k]){
+              const nov={id:"m"+Date.now()+Math.random().toString(36).slice(2,6),
+                         group:c.group,name:c.name,plan:+c.plan||0};
+              D.cats.push(nov);moje[k]=nov.id;
+            }
+            pres[c.id]=moje[k];
+          });
+          let n=0;
+          novi.forEach(e=>{
+            D.entries.push({id:"z"+Date.now()+(n++),date:e.date,
+              cat:pres[e.cat]||D.cats[0].id,amt:e.amt,note:e.note||""});
+          });
+          save();closeSheet();openGroups={};renderAll();
+          toast("Dodanih "+n+" vnosov");
+        };
+        $("#rep").onclick=()=>{
+          if(!confirm("Izbriše vseh "+D.entries.length+" sedanjih vnosov in postavi "+o.entries.length+" iz datoteke. Nadaljujem?"))return;
+          snapshot("pred zamenjavo",true);
+          D=o;save();openGroups={};draft={amt:"",cat:null,date:today(),note:""};
+          month=ym(new Date());renderAll();closeSheet();
+          toast("Zamenjano · "+o.entries.length+" vnosov");
+        };
+      });
     };
     rd.onerror=()=>toast("Datoteke ni bilo mogoče prebrati");
     rd.readAsText(file);
   };
   f.click();
+}
+
+function obnoviPosnetek(){
+  const a=snapRead();
+  if(!a.length){ toast("Posnetkov še ni"); return; }
+  let h='<div class="hint" style="margin:0 0 14px">Stanja, shranjena v tem brskalniku. '+
+        'Izberi tisto, ki ima pravo število vnosov.</div>';
+  a.forEach((x,i)=>{
+    const d=new Date(x.t);
+    h+='<button class="btn" data-i="'+i+'">'+
+       d.getDate()+". "+MONTHS[d.getMonth()].toLowerCase()+" ob "+p2(d.getHours())+":"+p2(d.getMinutes())+
+       ' · '+x.n+' vnosov</button>';
+  });
+  openSheet("Obnovi zadnje stanje",h,()=>{
+    document.querySelectorAll("#sheet .btn[data-i]").forEach(bt=>{
+      bt.onclick=()=>{
+        const x=a[+bt.dataset.i];
+        if(!confirm("Vrne stanje s "+x.n+" vnosi. Sedanjih "+D.entries.length+" bo zamenjanih. Nadaljujem?"))return;
+        snapshot("pred obnovitvijo",true);
+        D=JSON.parse(x.data);save();
+        openGroups={};draft={amt:"",cat:null,date:today(),note:""};
+        month=ym(new Date());renderAll();closeSheet();
+        toast("Obnovljeno · "+D.entries.length+" vnosov");
+      };
+    });
+  });
 }
 
 /* ---------- PLAN ---------- */
@@ -913,6 +998,7 @@ function renderPlan(){
         const n=D.entries.filter(e=>e.cat===c.id).length;
         const v=D.entries.filter(e=>e.cat===c.id).reduce((a,e)=>a+e.amt,0);
         if(n&&!confirm("»"+c.name+"« ima "+n+" vnosov v vrednosti "+eur(v)+", tudi v preteklih mesecih. Brisanje odstrani vse in spremeni pretekle vsote.\n\nČe jo želiš samo umakniti s tipkovnice, jo raje skrij: tapni ime kategorije.\n\nVseeno izbrišem?"))return;
+        snapshot("pred brisanjem kategorije",true);
         D.entries=D.entries.filter(e=>e.cat!==c.id);
         D.cats=D.cats.filter(x=>x.id!==c.id);
         save();renderPlan();renderCats();renderOver();renderHist();
@@ -958,7 +1044,10 @@ function renderPlan(){
   const bk=el("button","btn","Shrani varnostno kopijo");
   bk.onclick=backupSave;
   b.appendChild(bk);
-  const rr=el("button","btn","Obnovi iz varnostne kopije");
+  const sn=el("button","btn","Obnovi zadnje stanje");
+  sn.onclick=obnoviPosnetek;
+  b.appendChild(sn);
+  const rr=el("button","btn","Obnovi ali združi s kopijo");
   rr.onclick=backupRestore;
   b.appendChild(rr);
   b.appendChild(el("div","hint","S kopijo preneseš vse podatke na drug telefon ali računalnik."));
@@ -970,9 +1059,15 @@ function renderPlan(){
     '<b>Podatki so shranjeni v brskalniku na telefonu.</b> Če pobrišeš podatke brskalnika, se izbrišejo tudi vnosi — zato občasno izvozi CSV.</div>';
   b.appendChild(tip);
 
+  const vr=el("div","hint");
+  vr.style.cssText="text-align:center;margin-top:26px;letter-spacing:.14em;text-transform:uppercase;font-size:10px";
+  vr.textContent="Različica "+RAZLICICA;
+  b.appendChild(vr);
+
   const rs=el("button","btn danger","Ponastavi na uvožene podatke");
   rs.onclick=()=>{
     if(!confirm("Vrne vse na stanje iz preglednice in izbriše kasnejše vnose. Nadaljujem?"))return;
+    snapshot("pred ponastavitvijo",true);
     D=seed();save();openGroups={};draft={amt:"",cat:null,date:today(),note:""};
     renderAll();toast("Ponastavljeno");
   };

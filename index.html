@@ -10,8 +10,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap" rel="stylesheet">
-<title>Stroški</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230D1416'/><text x='50' y='72' font-size='62' text-anchor='middle' fill='%233DD68C' font-family='sans-serif'>€</text></svg>">
+<title>Petra's budget</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20512%20512%22%3E%3Crect%20width%3D%22512%22%20height%3D%22512%22%20rx%3D%22114%22%20fill%3D%22%235F6B50%22%2F%3E%3Cg%20fill%3D%22%23EDE9E1%22%3E%3Crect%20x%3D%22126%22%20y%3D%22286%22%20width%3D%2234%22%20height%3D%22104%22%20rx%3D%2217%22%2F%3E%3Crect%20x%3D%22182%22%20y%3D%22222%22%20width%3D%2234%22%20height%3D%22168%22%20rx%3D%2217%22%2F%3E%3Crect%20x%3D%22238%22%20y%3D%22264%22%20width%3D%2234%22%20height%3D%22126%22%20rx%3D%2217%22%2F%3E%3Crect%20x%3D%22350%22%20y%3D%22196%22%20width%3D%2234%22%20height%3D%22194%22%20rx%3D%2217%22%2F%3E%3C%2Fg%3E%3Crect%20x%3D%22294%22%20y%3D%22150%22%20width%3D%2234%22%20height%3D%22240%22%20rx%3D%2217%22%20fill%3D%22%23B8862B%22%2F%3E%3Crect%20x%3D%22104%22%20y%3D%22126%22%20width%3D%22304%22%20height%3D%227%22%20rx%3D%223.5%22%20fill%3D%22%23EDE9E1%22%20opacity%3D%22.45%22%2F%3E%3C%2Fsvg%3E">
+<link rel="apple-touch-icon" href="ikona.png"><rect width='100' height='100' rx='22' fill='%230D1416'/><text x='50' y='72' font-size='62' text-anchor='middle' fill='%233DD68C' font-family='sans-serif'>€</text></svg>">
 <style>
 :root{
   --bg:#EDE9E1; --surface:#F6F3ED; --surface2:#E4DFD4; --line:#D5CEC0;
@@ -589,7 +590,9 @@ function renderOver(){
   D.entries.forEach(e=>{const k=e.date.slice(0,7);byM[k]=(byM[k]||0)+e.amt;});
   const keys=Object.keys(byM).sort();
   if(keys.length>1){
-    const show=keys.slice(-12);
+    const od=D.trendFrom||"2025-12";
+    const show=keys.filter(k=>k>=od).slice(-12);
+    if(!show.length)return;
     const avg=show.reduce((s,k)=>s+byM[k],0)/show.length;
     const t=el("div","card");
     const th=el("button","fold");
@@ -897,6 +900,18 @@ function renderPlan(){
   const add=el("button","btn","+ Dodaj kategorijo");
   add.onclick=addCat;b.appendChild(add);
 
+  b.appendChild(el("div","sechead","Graf po mesecih"));
+  const gw=el("div","card");gw.style.marginTop="6px";
+  const gr=el("div","planrow");
+  gr.innerHTML='<span class="nm">Začni z mesecem</span>';
+  const gi=document.createElement("input");
+  gi.type="month";gi.value=D.trendFrom||"2025-12";gi.style.width="150px";
+  gi.onchange=()=>{D.trendFrom=gi.value||"2025-12";save();renderOver();};
+  gr.appendChild(gi);
+  gw.appendChild(gr);
+  b.appendChild(gw);
+  b.appendChild(el("div","hint","Starejši meseci ostanejo v Zgodovini, samo iz grafa se umaknejo."));
+
   b.appendChild(el("div","sechead","Videz"));
   const tw=el("div","card");tw.style.marginTop="6px";
   const tg=el("div","catgrid");
@@ -1053,11 +1068,14 @@ function renderAll(){renderCats();paintDraft();renderOver();renderHist();renderD
 /* ---------- namestitev na telefon ---------- */
 function installBits(){
   try{
-    const mf={name:"Stroški",short_name:"Stroški",display:"standalone",
-      background_color:"#0D1416",theme_color:"#0D1416",start_url:location.href,scope:"./",
-      icons:[{src:"data:image/svg+xml,"+encodeURIComponent(
-        "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='112' fill='#0D1416'/><text x='256' y='368' font-size='320' text-anchor='middle' fill='#3DD68C' font-family='sans-serif'>€</text></svg>"),
-        sizes:"512x512",type:"image/svg+xml",purpose:"any"}]};
+    const vgrajena="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20512%20512%22%3E%3Crect%20width%3D%22512%22%20height%3D%22512%22%20rx%3D%22114%22%20fill%3D%22%235F6B50%22%2F%3E%3Cg%20fill%3D%22%23EDE9E1%22%3E%3Crect%20x%3D%22126%22%20y%3D%22286%22%20width%3D%2234%22%20height%3D%22104%22%20rx%3D%2217%22%2F%3E%3Crect%20x%3D%22182%22%20y%3D%22222%22%20width%3D%2234%22%20height%3D%22168%22%20rx%3D%2217%22%2F%3E%3Crect%20x%3D%22238%22%20y%3D%22264%22%20width%3D%2234%22%20height%3D%22126%22%20rx%3D%2217%22%2F%3E%3Crect%20x%3D%22350%22%20y%3D%22196%22%20width%3D%2234%22%20height%3D%22194%22%20rx%3D%2217%22%2F%3E%3C%2Fg%3E%3Crect%20x%3D%22294%22%20y%3D%22150%22%20width%3D%2234%22%20height%3D%22240%22%20rx%3D%2217%22%20fill%3D%22%23B8862B%22%2F%3E%3Crect%20x%3D%22104%22%20y%3D%22126%22%20width%3D%22304%22%20height%3D%227%22%20rx%3D%223.5%22%20fill%3D%22%23EDE9E1%22%20opacity%3D%22.45%22%2F%3E%3C%2Fsvg%3E";
+    const mf={name:"Petra\u2019s budget",short_name:"Petra\u2019s budget",display:"standalone",
+      background_color:"#EDE9E1",theme_color:"#EDE9E1",start_url:location.href,scope:"./",
+      icons:[
+        {src:"ikona.png",sizes:"512x512",type:"image/png",purpose:"any"},
+        {src:"ikona.png",sizes:"512x512",type:"image/png",purpose:"maskable"},
+        {src:vgrajena,sizes:"512x512",type:"image/svg+xml",purpose:"any"}
+      ]};
     const l=document.createElement("link");
     l.rel="manifest";
     l.href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:"application/manifest+json"}));
@@ -1084,6 +1102,7 @@ function warnBanner(){
   D=(saved&&saved.cats&&saved.cats.length)?saved:seed();
   if(!D.theme)D.theme="lan";
   if(!THEMES[D.theme])D.theme="lan";
+  if(!D.trendFrom)D.trendFrom="2025-12";
   applyTheme(D.theme);
   if(!saved)save();
   renderAll();

@@ -174,6 +174,32 @@ button{border:0;background:none;cursor:pointer;padding:0}
 .found{font-size:11px;color:var(--label);letter-spacing:.1em;text-transform:uppercase;
   padding:2px 0 4px}
 .found b{color:var(--subtle);font-weight:700}
+.heroline{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  padding:6px 0;border-bottom:1px solid var(--line)}
+.heroline.second{border-bottom:0}
+.heroline .hl{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--label);font-weight:700}
+.heroline .spent2{font-family:var(--f-fig);font-size:32px;line-height:1;letter-spacing:-.02em}
+.fold{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:2px 0 10px}
+.fold[aria-expanded="true"] .car{transform:rotate(90deg)}
+.fold .car{color:var(--label);font-size:9px;transition:transform .2s;flex:0 0 8px}
+.fold .sechead{flex:1}
+.fold .foldv{font-size:11.5px;color:var(--muted)}
+.notechips{margin:14px 0 0;justify-content:center}
+.dbig{font-family:var(--f-fig);font-size:46px;line-height:1;letter-spacing:-.02em}
+.dsum{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;
+  border-bottom:1px solid var(--line)}
+.dsum:last-child{border-bottom:0}
+.dsum .k{font-size:13px;color:var(--subtle)}
+.dsum .v{font-family:var(--f-num);font-size:13.5px}
+.drow{display:flex;align-items:center;gap:10px;padding:12px 0;
+  border-bottom:1px solid var(--line);width:100%;text-align:left}
+.drow:last-child{border-bottom:0}
+.drow .nm{flex:1;min-width:0;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.drow .nm small{display:block;font-size:11px;color:var(--muted);margin-top:3px;font-family:var(--f-num)}
+.drow .v{font-family:var(--f-num);font-size:14px;white-space:nowrap;font-weight:650}
+.drow .v.up{color:var(--red)}
+.drow .v.down{color:var(--ok)}
 .day{margin-top:26px}
 .dayhead{display:flex;justify-content:space-between;align-items:baseline;
   padding:0 0 4px;font-size:10px;color:var(--label);letter-spacing:.12em;
@@ -210,12 +236,12 @@ button{border:0;background:none;cursor:pointer;padding:0}
 .hint b{color:var(--subtle);font-weight:600}
 
 /* ---------- zavihki ---------- */
-.tabs{display:grid;grid-template-columns:repeat(4,1fr);
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);
   border-top:1px solid var(--line);padding-bottom:var(--safe-b)}
 .tab{padding:11px 0 10px;display:flex;flex-direction:column;align-items:center;gap:5px;
-  color:var(--label);font-size:9.5px;font-weight:600;letter-spacing:.1em;
+  color:var(--label);font-size:8.5px;font-weight:600;letter-spacing:.06em;
   text-transform:uppercase;transition:color .15s}
-.tab svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.5;
+.tab svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;
   stroke-linecap:round;stroke-linejoin:round}
 .tab.on{color:var(--mint)}
 
@@ -253,10 +279,12 @@ button{border:0;background:none;cursor:pointer;padding:0}
     <div class="entryhead">
       <div class="chips">
         <button class="chip" id="dateChip">📅 <strong id="dateLbl">danes</strong></button>
-        <button class="chip" id="noteChip">📝 <strong id="noteLbl">komentar</strong></button>
       </div>
       <div class="amount"><span class="val num zero" id="amtVal">0</span><span class="cur">€</span></div>
       <div class="picked" id="pickedLbl">Izberi kategorijo</div>
+      <div class="chips notechips">
+        <button class="chip" id="noteChip">📝 <strong id="noteLbl">Dodaj komentar</strong></button>
+      </div>
     </div>
     <div class="catwrap" id="catWrap"></div>
     <div class="pad">
@@ -288,6 +316,14 @@ button{border:0;background:none;cursor:pointer;padding:0}
     <div class="scroll" id="histBody"></div>
   </section>
 
+  <section class="screen" id="s-diff">
+    <div class="topbar">
+      <h1>Razlika</h1>
+      <div class="monthnav"><button data-m="-1">‹</button><span class="lbl" id="mLbl3"></span><button data-m="1">›</button></div>
+    </div>
+    <div class="scroll" id="diffBody"></div>
+  </section>
+
   <section class="screen" id="s-plan">
     <div class="topbar"><h1>Plan in nastavitve</h1></div>
     <div class="scroll" id="planBody"></div>
@@ -297,6 +333,8 @@ button{border:0;background:none;cursor:pointer;padding:0}
     <button class="tab on" data-s="s-add"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Vnos</button>
     <button class="tab" data-s="s-over"><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>Pregled</button>
     <button class="tab" data-s="s-hist"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Zgodovina</button>
+    <button class="tab" data-s="s-diff">
+      <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h11M3 18h7"/><path d="M20 15l2 3h-4z"/></svg>Razlika</button>
     <button class="tab" data-s="s-plan"><svg viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>Plan</button>
   </nav>
 </div>
@@ -332,6 +370,7 @@ let D={v:2,cats:[],entries:[]};
 let month=ym(new Date());
 let draft={amt:"",cat:null,date:today(),note:""};
 let openGroups={};
+let openTrend=false;
 
 function today(){const d=new Date();return d.getFullYear()+"-"+p2(d.getMonth()+1)+"-"+p2(d.getDate());}
 function p2(n){return String(n).padStart(2,"0");}
@@ -354,7 +393,9 @@ function monthEntries(m){return D.entries.filter(e=>e.date.slice(0,7)===m);}
 function spentBy(m){const o={};monthEntries(m).forEach(e=>{o[e.cat]=(o[e.cat]||0)+e.amt});return o;}
 function planTotal(){return D.cats.reduce((s,c)=>s+(c.hidden?0:(+c.plan||0)),0);}
 function barHTML(sp,pl){
-  if(!pl)return '<i style="width:'+(sp>0?100:0)+'%;background:var(--muted);opacity:.45"></i>';
+  if(!pl)return sp>0
+    ? '<i class="pastplan" style="width:100%;background:var(--red)"></i>'
+    : '<i style="width:0%"></i>';
   const maxv=Math.max(pl,sp);
   const fill=Math.min(100,sp/maxv*100);
   const tick=pl/maxv*100;
@@ -390,7 +431,7 @@ function paintDraft(){
   const c=draft.cat?catById(draft.cat):null;
   $("#pickedLbl").innerHTML=c?"<b>"+esc(c.name)+"</b> · "+esc(c.group):"Izberi kategorijo";
   $("#dateLbl").textContent=draft.date===today()?"danes":draft.date.split("-").reverse().slice(0,2).join(".")+".";
-  $("#noteLbl").textContent=draft.note?(draft.note.length>16?draft.note.slice(0,16)+"…":draft.note):"komentar";
+  $("#noteLbl").textContent=draft.note?(draft.note.length>22?draft.note.slice(0,22)+"…":draft.note):"Dodaj komentar";
   $("#saveBtn").disabled=!(c&&parseFloat(draft.amt.replace(",","."))>0);
 }
 function press(k){
@@ -473,10 +514,10 @@ function renderOver(){
   const pace=dayNow/dim;
 
   const hero=el("div","card hero");
-  let h='<div class="row1"><span class="spent">'+eur(spent)+'</span></div>'+
-    '<div class="of">od '+eur(plan)+' plana · '+
-    (left<0?'<span class="over-amt">'+eur(-left)+' čez plan</span>'
-           :'<b>'+eur(left)+' ostane</b>')+'</div>';
+  let h='<div class="heroline"><span class="hl">Porabljeno</span>'+
+      '<span class="spent">'+eur(spent)+'</span></div>'+
+    '<div class="heroline second"><span class="hl">'+(left<0?"Čez plan":"Ostane")+'</span>'+
+      '<span class="spent2'+(left<0?" over-amt":"")+'">'+eur(Math.abs(left))+'</span></div>';
 
   /* glavnik meseca: en stolpič na dan, višina = poraba tistega dne */
   const dnevi=[];
@@ -514,7 +555,8 @@ function renderOver(){
     const btn=el("button","grow");
     btn.setAttribute("aria-expanded",!!openGroups[g]);
     btn.innerHTML='<span class="car">▶</span><span class="nm">'+esc(g)+'</span>'+
-      '<span class="amt num"><b>'+eur(gsp)+'</b>'+(gpl?" / "+eur(gpl):"")+cezTxt(gsp,gpl)+'</span>';
+      '<span class="amt num"><b>'+eur(gsp)+'</b>'+
+      (gpl?' / '+eur(gpl):' <span class="over-amt">/ '+eur(0)+'</span>')+'</span>';
     const bar=el("div","bar");
     bar.innerHTML=barHTML(gsp,gpl);
     const subs=el("div","subs"+(openGroups[g]?" open":""));
@@ -524,7 +566,8 @@ function renderOver(){
       const r=el("div","sub");
       r.innerHTML='<span class="nm">'+esc(c.name)+'</span>'+
         '<span class="bar">'+barHTML(s,pl)+'</span>'+
-        '<span class="amt">'+eur(s)+(pl?" / "+eur(pl):"")+cezTxt(s,pl)+'</span>';
+        '<span class="amt">'+eur(s)+
+        (pl?' / '+eur(pl):' <span class="over-amt">/ '+eur(0)+'</span>')+'</span>';
       subs.appendChild(r);
     });
     btn.onclick=()=>{openGroups[g]=!openGroups[g];renderOver();};
@@ -549,19 +592,26 @@ function renderOver(){
     const show=keys.slice(-12);
     const avg=show.reduce((s,k)=>s+byM[k],0)/show.length;
     const t=el("div","card");
-    t.appendChild(el("div","sechead","Po mesecih")).style.margin="0 0 8px";
+    const th=el("button","fold");
+    th.setAttribute("aria-expanded",!!openTrend);
+    th.innerHTML='<span class="car">▶</span><span class="sechead" style="margin:0">Po mesecih</span>'+
+      '<span class="foldv num">'+eur(avg)+' povprečno</span>';
+    th.onclick=()=>{openTrend=!openTrend;renderOver();};
+    t.appendChild(th);
+    const tb=el("div","subs"+(openTrend?" open":""));
     show.forEach(k=>{
       const [yy,mm]=k.split("-");
       const b=el("button","trend"+(k===month?" cur":""));
       b.innerHTML='<span class="m">'+SHORT[+mm-1]+" "+yy.slice(2)+'</span>'+
         '<span class="bar">'+barHTML(byM[k],planTotal())+'</span>'+
         '<span class="v">'+eur(byM[k])+'</span>';
-      b.onclick=()=>{month=k;renderOver();renderHist();};
-      t.appendChild(b);
+      b.onclick=()=>{month=k;renderOver();renderHist();renderDiff();};
+      tb.appendChild(b);
     });
     const f=el("div","hint");
-    f.innerHTML="Povprečje zadnjih "+show.length+" mesecev: <b>"+eur(avg)+"</b>. Meseci brez podatkov niso prikazani.";
-    t.appendChild(f);
+    f.innerHTML="Povprečje zadnjih "+show.length+" mesecev. Meseci brez podatkov niso prikazani.";
+    tb.appendChild(f);
+    t.appendChild(tb);
     body.appendChild(t);
   }
   /* opomnik za varnostno kopijo */
@@ -594,6 +644,70 @@ function renderOver(){
     '<br>Če se ta čas po ponovnem odprtju ne spremeni, telefon vnosov ne shranjuje.</div>';
   body.appendChild(st);
 }
+function renderDiff(){
+  const l=$("#mLbl3");if(l)l.textContent=monthLbl(month);
+  const b=$("#diffBody");if(!b)return;b.innerHTML="";
+  const sp=spentBy(month), plan=planTotal();
+  const spent=Object.values(sp).reduce((a,x)=>a+x,0);
+  const raz=plan-spent;
+
+  const head=el("div","card");head.style.marginTop="4px";
+  head.innerHTML='<div class="dbig" style="color:'+(raz<0?"var(--red)":"var(--ok)")+'">'+
+      (raz<0?"+"+eur(-raz):eur(raz))+'</div>'+
+    '<div class="hint" style="margin-top:6px">'+
+      (raz<0?"toliko si čez mesečni plan":"toliko ti ostane do plana")+'</div>'+
+    '<div style="margin-top:18px">'+
+      '<div class="dsum"><span class="k">Plan</span><span class="v">'+eur(plan)+'</span></div>'+
+      '<div class="dsum"><span class="k">Porabljeno</span><span class="v">'+eur(spent)+'</span></div>'+
+    '</div>';
+  b.appendChild(head);
+
+  const cez=[],znotraj=[],brez=[];
+  D.cats.forEach(c=>{
+    const v=sp[c.id]||0, pl=c.hidden?0:(+c.plan||0);
+    if(pl>0&&v>pl)cez.push([c,v,pl]);
+    else if(pl>0)znotraj.push([c,v,pl]);
+    else if(v>0)brez.push([c,v,0]);
+  });
+  cez.sort((a,x)=>(x[1]-x[2])-(a[1]-a[2]));
+  znotraj.sort((a,x)=>(a[2]-a[1])-(x[2]-x[1]));
+  brez.sort((a,x)=>x[1]-a[1]);
+
+  function odsek(naslov,seznam,tip,pojasnilo){
+    if(!seznam.length)return;
+    b.appendChild(el("div","sechead",naslov));
+    const box=el("div","card");box.style.marginTop="4px";
+    seznam.forEach(r=>{
+      const c=r[0],v=r[1],pl=r[2];
+      const row=el("button","drow");
+      let val,cls;
+      if(tip==="cez"){val="+"+eur(v-pl);cls="up";}
+      else if(tip==="znotraj"){val=eur(pl-v);cls="down";}
+      else{val="+"+eur(v);cls="up";}
+      row.innerHTML='<span class="nm">'+esc(c.name)+
+        '<small>'+eur(v)+' / '+eur(pl)+'</small></span>'+
+        '<span class="v '+cls+'">'+val+'</span>';
+      row.onclick=()=>{
+        document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.dataset.s==="s-hist"));
+        document.querySelectorAll(".screen").forEach(x=>x.classList.toggle("on",x.id==="s-hist"));
+        const q=$("#q");if(q)q.value=c.name;
+        renderHist();
+      };
+      box.appendChild(row);
+    });
+    b.appendChild(box);
+    if(pojasnilo)b.appendChild(el("div","hint",pojasnilo));
+  }
+
+  odsek("Čez plan",cez,"cez",null);
+  odsek("Brez plana",brez,"brez",
+    "Te kategorije imajo plan 0,00 €. Poraba se šteje v mesečno vsoto, plan pa ne. Plan jim vpišeš v zavihku Plan.");
+  odsek("Znotraj plana",znotraj,"znotraj",null);
+
+  if(!cez.length&&!znotraj.length&&!brez.length)
+    b.innerHTML='<div class="empty">Za '+monthLbl(month)+' ni podatkov.</div>';
+}
+
 function renderHist(){
   const b=$("#histBody");b.innerHTML="";
   const qEl=$("#q");
@@ -918,12 +1032,13 @@ document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
   document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("on",s.id===t.dataset.s));
   if(t.dataset.s==="s-over")renderOver();
   if(t.dataset.s==="s-hist")renderHist();
+  if(t.dataset.s==="s-diff")renderDiff();
   if(t.dataset.s==="s-plan")renderPlan();
 });
 document.querySelectorAll(".monthnav button").forEach(b=>b.onclick=()=>{
   const [y,m]=month.split("-").map(Number);
   month=ym(new Date(y,m-1+ +b.dataset.m,1));
-  renderOver();renderHist();
+  renderOver();renderHist();renderDiff();
 });
 let qT;
 document.addEventListener("input",function(ev){
@@ -933,7 +1048,7 @@ document.addEventListener("click",function(ev){
   if(ev.target&&ev.target.id==="qx"){$("#q").value="";renderHist();}
 });
 
-function renderAll(){renderCats();paintDraft();renderOver();renderHist();renderPlan();}
+function renderAll(){renderCats();paintDraft();renderOver();renderHist();renderDiff();renderPlan();}
 
 /* ---------- namestitev na telefon ---------- */
 function installBits(){

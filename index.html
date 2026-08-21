@@ -12,6 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap" rel="stylesheet">
 <title>Petra's budget</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20512%20512%22%3E%3Crect%20width%3D%22512%22%20height%3D%22512%22%20rx%3D%22114%22%20fill%3D%22%235F6B50%22%2F%3E%3Cg%20fill%3D%22%23EDE9E1%22%3E%3Crect%20x%3D%22126%22%20y%3D%22286%22%20width%3D%2234%22%20height%3D%22104%22%20rx%3D%2217%22%2F%3E%3Crect%20x%3D%22182%22%20y%3D%22222%22%20width%3D%2234%22%20height%3D%22168%22%20rx%3D%2217%22%2F%3E%3Crect%20x%3D%22238%22%20y%3D%22264%22%20width%3D%2234%22%20height%3D%22126%22%20rx%3D%2217%22%2F%3E%3Crect%20x%3D%22350%22%20y%3D%22196%22%20width%3D%2234%22%20height%3D%22194%22%20rx%3D%2217%22%2F%3E%3C%2Fg%3E%3Crect%20x%3D%22294%22%20y%3D%22150%22%20width%3D%2234%22%20height%3D%22240%22%20rx%3D%2217%22%20fill%3D%22%23B8862B%22%2F%3E%3Crect%20x%3D%22104%22%20y%3D%22126%22%20width%3D%22304%22%20height%3D%227%22%20rx%3D%223.5%22%20fill%3D%22%23EDE9E1%22%20opacity%3D%22.45%22%2F%3E%3C%2Fsvg%3E">
+<link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="ikona.png">
 <style>
 :root{
@@ -362,7 +363,7 @@ button{border:0;background:none;cursor:pointer;padding:0}
 /* podatki uvoženi iz STROŠKI.xlsx */
 const SEED={"cats":[{"g":"Trgovina – hrana","n":"Doma hrana","p":75},{"g":"Trgovina – hrana","n":"Služba hrana","p":75},{"g":"Trgovina – hrana","n":"Wolt + restavracija","p":30},{"g":"Trgovina ostalo","n":"Kozmetika","p":20},{"g":"Trgovina ostalo","n":"Zdravila","p":0},{"g":"Trgovina ostalo","n":"Čistila","p":0},{"g":"Trgovina ostalo","n":"Oblačila","p":0},{"g":"Trgovina ostalo","n":"Ostalo","p":0},{"g":"Vadba","n":"Zen Vital Reformer + fitnes","p":0},{"g":"Terapije","n":"Tjaša","p":0},{"g":"Terapije","n":"Ostalo","p":0},{"g":"Zdravstvo","n":"Dermatolog","p":0},{"g":"Zdravstvo","n":"Zobar","p":0},{"g":"Avto","n":"Gorivo","p":100},{"g":"Avto","n":"Popravila","p":0},{"g":"Avto","n":"Registracija in ostalo","p":0},{"g":"Stanovanje","n":"Najemnina","p":385},{"g":"Stanovanje","n":"Stroški","p":100},{"g":"Potovanja / izleti","n":"Potovanje","p":0},{"g":"Potovanja / izleti","n":"Izlet","p":0},{"g":"Ostali stroški","n":"Telefon","p":0},{"g":"Ostali stroški","n":"Stroški banka","p":7},{"g":"Druženja","n":"Prijatelji / družina","p":50},{"g":"Druženja","n":"Žiga","p":100},{"g":"Druženja","n":"Darila","p":0},{"g":"Ostalo","n":"Ostalo","p":50},{"g":"Ostalo","n":"Magistrska naloga","p":0},{"g":"Ostalo","n":"s.p.","p":0}],"entries":[]};
 
-const RAZLICICA="v14 · 20.8.2026";
+const RAZLICICA="v15 · 20.8.2026";
 const KEY="stroski-v2";
 const SNAP="stroski-snap";
 
@@ -1103,6 +1104,18 @@ function renderPlan(){
     '<b>Podatki so shranjeni v brskalniku na telefonu.</b> Če pobrišeš podatke brskalnika, se izbrišejo tudi vnosi — zato občasno izvozi CSV.</div>';
   b.appendChild(tip);
 
+  const st=el("div","hint");
+  st.style.cssText="text-align:center;margin-top:18px";
+  st.textContent="Preverjam pomnilnik…";
+  b.appendChild(st);
+  if(navigator.storage&&navigator.storage.persisted){
+    navigator.storage.persisted().then(ok=>{
+      st.innerHTML=ok
+        ? "Pomnilnik je <b>zaščiten</b>. Brskalnik podatkov ne bo počistil sam od sebe."
+        : "Pomnilnik <b>ni zaščiten</b>. Dodaj aplikacijo na začetni zaslon, da si prisluži zaščito, in redno delaj varnostne kopije.";
+    }).catch(()=>{st.textContent="";});
+  }else{ st.textContent=""; }
+
   const vr=el("div","hint");
   vr.style.cssText="text-align:center;margin-top:26px;letter-spacing:.14em;text-transform:uppercase;font-size:10px";
   vr.textContent="Različica "+RAZLICICA;
@@ -1232,23 +1245,19 @@ function renderAll(){renderCats();paintDraft();renderOver();renderHist();renderD
 
 /* ---------- namestitev na telefon ---------- */
 function installBits(){
-  try{
-    const vgrajena="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20512%20512%22%3E%3Crect%20width%3D%22512%22%20height%3D%22512%22%20rx%3D%22114%22%20fill%3D%22%235F6B50%22%2F%3E%3Cg%20fill%3D%22%23EDE9E1%22%3E%3Crect%20x%3D%22126%22%20y%3D%22286%22%20width%3D%2234%22%20height%3D%22104%22%20rx%3D%2217%22%2F%3E%3Crect%20x%3D%22182%22%20y%3D%22222%22%20width%3D%2234%22%20height%3D%22168%22%20rx%3D%2217%22%2F%3E%3Crect%20x%3D%22238%22%20y%3D%22264%22%20width%3D%2234%22%20height%3D%22126%22%20rx%3D%2217%22%2F%3E%3Crect%20x%3D%22350%22%20y%3D%22196%22%20width%3D%2234%22%20height%3D%22194%22%20rx%3D%2217%22%2F%3E%3C%2Fg%3E%3Crect%20x%3D%22294%22%20y%3D%22150%22%20width%3D%2234%22%20height%3D%22240%22%20rx%3D%2217%22%20fill%3D%22%23B8862B%22%2F%3E%3Crect%20x%3D%22104%22%20y%3D%22126%22%20width%3D%22304%22%20height%3D%227%22%20rx%3D%223.5%22%20fill%3D%22%23EDE9E1%22%20opacity%3D%22.45%22%2F%3E%3C%2Fsvg%3E";
-    const mf={name:"Petra\u2019s budget",short_name:"Petra\u2019s budget",display:"standalone",
-      background_color:"#EDE9E1",theme_color:"#EDE9E1",start_url:location.href,scope:"./",
-      icons:[
-        {src:"ikona192.png",sizes:"192x192",type:"image/png",purpose:"any"},
-        {src:"ikona.png",sizes:"512x512",type:"image/png",purpose:"any"},
-        {src:"ikona.png",sizes:"512x512",type:"image/png",purpose:"maskable"},
-        {src:vgrajena,sizes:"512x512",type:"image/svg+xml",purpose:"any"}
-      ]};
-    const l=document.createElement("link");
-    l.rel="manifest";
-    l.href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:"application/manifest+json"}));
-    document.head.appendChild(l);
-  }catch(e){}
-  if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
+  /* Service worker: aplikacija se namesti kot prava, dela brez interneta.
+     Deluje samo prek https, pri datoteki iz Prenosov se tiho preskoči. */
+  if("serviceWorker" in navigator && location.protocol==="https:"){
+    navigator.serviceWorker.register("sw.js").catch(()=>{});
+  }
+  /* Trajni pomnilnik: brskalnik podatkov ne sme počistiti sam od sebe. */
+  if(navigator.storage&&navigator.storage.persist){
+    navigator.storage.persisted().then(ok=>{
+      if(!ok)return navigator.storage.persist();
+    }).catch(()=>{});
+  }
 }
+
 /* preveri, ali brskalnik sploh dovoli shranjevanje (pri file:// pogosto ne) */
 function storageWorks(){
   try{ localStorage.setItem("__t","1"); localStorage.removeItem("__t"); return true; }

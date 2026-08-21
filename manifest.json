@@ -1,0 +1,17 @@
+{
+  "name": "Petra's budget",
+  "short_name": "Petra's budget",
+  "description": "Sledilnik osebnih stroškov",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#EDE9E1",
+  "theme_color": "#EDE9E1",
+  "lang": "sl",
+  "icons": [
+    { "src": "ikona192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "ikona.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "ikona.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

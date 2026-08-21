@@ -363,7 +363,7 @@ button{border:0;background:none;cursor:pointer;padding:0}
 /* podatki uvoženi iz STROŠKI.xlsx */
 const SEED={"cats":[{"g":"Trgovina – hrana","n":"Doma hrana","p":75},{"g":"Trgovina – hrana","n":"Služba hrana","p":75},{"g":"Trgovina – hrana","n":"Wolt + restavracija","p":30},{"g":"Trgovina ostalo","n":"Kozmetika","p":20},{"g":"Trgovina ostalo","n":"Zdravila","p":0},{"g":"Trgovina ostalo","n":"Čistila","p":0},{"g":"Trgovina ostalo","n":"Oblačila","p":0},{"g":"Trgovina ostalo","n":"Ostalo","p":0},{"g":"Vadba","n":"Zen Vital Reformer + fitnes","p":0},{"g":"Terapije","n":"Tjaša","p":0},{"g":"Terapije","n":"Ostalo","p":0},{"g":"Zdravstvo","n":"Dermatolog","p":0},{"g":"Zdravstvo","n":"Zobar","p":0},{"g":"Avto","n":"Gorivo","p":100},{"g":"Avto","n":"Popravila","p":0},{"g":"Avto","n":"Registracija in ostalo","p":0},{"g":"Stanovanje","n":"Najemnina","p":385},{"g":"Stanovanje","n":"Stroški","p":100},{"g":"Potovanja / izleti","n":"Potovanje","p":0},{"g":"Potovanja / izleti","n":"Izlet","p":0},{"g":"Ostali stroški","n":"Telefon","p":0},{"g":"Ostali stroški","n":"Stroški banka","p":7},{"g":"Druženja","n":"Prijatelji / družina","p":50},{"g":"Druženja","n":"Žiga","p":100},{"g":"Druženja","n":"Darila","p":0},{"g":"Ostalo","n":"Ostalo","p":50},{"g":"Ostalo","n":"Magistrska naloga","p":0},{"g":"Ostalo","n":"s.p.","p":0}],"entries":[]};
 
-const RAZLICICA="v15 · 20.8.2026";
+const RAZLICICA="v16 · 20.8.2026";
 const KEY="stroski-v2";
 const SNAP="stroski-snap";
 
@@ -696,9 +696,9 @@ function renderOver(){
     rem.innerHTML='<div class="hint" style="margin:0 0 10px;color:var(--warn-text)">'+
       (dni===null?"Varnostne kopije \u0161e nisi naredila.":"Zadnja varnostna kopija je stara "+dni+" dni.")+
       ' \u010ce telefon izgubi podatke brskalnika, gre vse. Kopija traja pet sekund.</div>';
-    const rb=el("button","btn","Shrani varnostno kopijo");
+    const rb=el("button","btn","Pošlji kopijo")
     rb.style.marginTop="0";
-    rb.onclick=backupSave;
+    rb.onclick=backupPoslji;
     rem.appendChild(rb);
     body.appendChild(rem);
   }
@@ -895,6 +895,23 @@ function applyTheme(id){
 }
 
 /* ---------- VARNOSTNA KOPIJA ---------- */
+async function backupPoslji(){
+  const ime="stroski-kopija-"+today()+".json";
+  const vsebina=JSON.stringify(D);
+  try{
+    const f=new File([vsebina],ime,{type:"application/json"});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){
+      await navigator.share({files:[f],title:"Varnostna kopija stroškov"});
+      D.backupAt=new Date().toISOString();save();renderOver();renderPlan();
+      toast("Kopija poslana");
+      return;
+    }
+  }catch(e){
+    if(e&&e.name==="AbortError")return;
+  }
+  backupSave();
+}
+
 function backupSave(){
   const blob=new Blob([JSON.stringify(D)],{type:"application/json"});
   const u=URL.createObjectURL(blob),a=document.createElement("a");
@@ -1086,7 +1103,10 @@ function renderPlan(){
   b.appendChild(el("div","hint","Datoteko odpreš v Excelu. Široka tabela ima stolpce po kategorijah, tako kot tvoja preglednica."));
 
   b.appendChild(el("div","sechead","Varnostna kopija"));
-  const bk=el("button","btn","Shrani varnostno kopijo");
+  const bp=el("button","btn primary","Pošlji kopijo (Drive, e-pošta…)");
+  bp.onclick=backupPoslji;
+  b.appendChild(bp);
+  const bk=el("button","btn","Shrani kopijo v telefon");
   bk.onclick=backupSave;
   b.appendChild(bk);
   const sn=el("button","btn","Obnovi zadnje stanje");

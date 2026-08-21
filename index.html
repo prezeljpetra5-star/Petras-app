@@ -336,7 +336,10 @@ button{border:0;background:none;cursor:pointer;padding:0}
   </section>
 
   <section class="screen" id="s-plan">
-    <div class="topbar"><h1>Plan in nastavitve</h1></div>
+    <div class="topbar">
+      <h1>Plan</h1>
+      <div class="monthnav"><button data-m="-1">‹</button><span class="lbl" id="mLbl4"></span><button data-m="1">›</button></div>
+    </div>
     <div class="scroll" id="planBody"></div>
   </section>
 
@@ -359,7 +362,7 @@ button{border:0;background:none;cursor:pointer;padding:0}
 /* podatki uvoženi iz STROŠKI.xlsx */
 const SEED={"cats":[{"g":"Trgovina – hrana","n":"Doma hrana","p":75},{"g":"Trgovina – hrana","n":"Služba hrana","p":75},{"g":"Trgovina – hrana","n":"Wolt + restavracija","p":30},{"g":"Trgovina ostalo","n":"Kozmetika","p":20},{"g":"Trgovina ostalo","n":"Zdravila","p":0},{"g":"Trgovina ostalo","n":"Čistila","p":0},{"g":"Trgovina ostalo","n":"Oblačila","p":0},{"g":"Trgovina ostalo","n":"Ostalo","p":0},{"g":"Vadba","n":"Zen Vital Reformer + fitnes","p":0},{"g":"Terapije","n":"Tjaša","p":0},{"g":"Terapije","n":"Ostalo","p":0},{"g":"Zdravstvo","n":"Dermatolog","p":0},{"g":"Zdravstvo","n":"Zobar","p":0},{"g":"Avto","n":"Gorivo","p":100},{"g":"Avto","n":"Popravila","p":0},{"g":"Avto","n":"Registracija in ostalo","p":0},{"g":"Stanovanje","n":"Najemnina","p":385},{"g":"Stanovanje","n":"Stroški","p":100},{"g":"Potovanja / izleti","n":"Potovanje","p":0},{"g":"Potovanja / izleti","n":"Izlet","p":0},{"g":"Ostali stroški","n":"Telefon","p":0},{"g":"Ostali stroški","n":"Stroški banka","p":7},{"g":"Druženja","n":"Prijatelji / družina","p":50},{"g":"Druženja","n":"Žiga","p":100},{"g":"Druženja","n":"Darila","p":0},{"g":"Ostalo","n":"Ostalo","p":50},{"g":"Ostalo","n":"Magistrska naloga","p":0},{"g":"Ostalo","n":"s.p.","p":0}],"entries":[]};
 
-const RAZLICICA="v13 · 20.8.2026";
+const RAZLICICA="v14 · 20.8.2026";
 const KEY="stroski-v2";
 const SNAP="stroski-snap";
 
@@ -423,7 +426,28 @@ function groups(){const g=[];D.cats.forEach(c=>{if(!g.includes(c.group))g.push(c
 function catById(id){return D.cats.find(c=>c.id===id);}
 function monthEntries(m){return D.entries.filter(e=>e.date.slice(0,7)===m);}
 function spentBy(m){const o={};monthEntries(m).forEach(e=>{o[e.cat]=(o[e.cat]||0)+e.amt});return o;}
-function planTotal(){return D.cats.reduce((s,c)=>s+(c.hidden?0:(+c.plan||0)),0);}
+function planKeys(){return Object.keys(D.plans||{}).sort();}
+function planFor(m){
+  const ks=planKeys().filter(k=>k<=m);
+  return ks.length?D.plans[ks[ks.length-1]]:null;
+}
+function planOf(c,m){
+  if(c.hidden)return 0;
+  const p=planFor(m);
+  if(p&&p[c.id]!==undefined)return +p[c.id]||0;
+  return +c.plan||0;
+}
+function planTotal(m){return D.cats.reduce((s,c)=>s+planOf(c,m),0);}
+function planLasten(m){return !!(D.plans&&D.plans[m]);}
+function planNastavi(catId,val,m){
+  if(!D.plans)D.plans={};
+  if(!D.plans[m]){
+    const snap={};
+    D.cats.forEach(c=>{snap[c.id]=planOf(c,m);});
+    D.plans[m]=snap;
+  }
+  D.plans[m][catId]=val;
+}
 function barHTML(sp,pl){
   if(!pl)return sp>0
     ? '<i class="pastplan" style="width:100%;background:var(--red)"></i>'
@@ -550,7 +574,7 @@ function renderOver(){
     body.appendChild(w);
   }
 
-  const sp=spentBy(month), plan=planTotal();
+  const sp=spentBy(month), plan=planTotal(month);
   const spent=Object.values(sp).reduce((a,b)=>a+b,0);
   const left=plan-spent;
   const [y,mo]=month.split("-").map(Number);
@@ -592,12 +616,12 @@ function renderOver(){
   body.appendChild(hero);
 
   const gc=el("div","card");
-  const gs=groups().filter(g=>D.cats.filter(c=>c.group===g).some(c=>(sp[c.id]||0)>0||(!c.hidden&&+c.plan>0)));
+  const gs=groups().filter(g=>D.cats.filter(c=>c.group===g).some(c=>(sp[c.id]||0)>0||planOf(c,month)>0));
   if(!gs.length)gc.innerHTML='<div class="empty">Ta mesec še ni vnosov.<br>Odpri <b>Vnos</b> in zabeleži prvi strošek.</div>';
   gs.forEach(g=>{
     const cs=D.cats.filter(c=>c.group===g);
     const gsp=cs.reduce((s,c)=>s+(sp[c.id]||0),0);
-    const gpl=cs.reduce((s,c)=>s+(c.hidden?0:(+c.plan||0)),0);
+    const gpl=cs.reduce((s,c)=>s+planOf(c,month),0);
     const box=el("div","grp");
     const btn=el("button","grow");
     btn.setAttribute("aria-expanded",!!openGroups[g]);
@@ -608,7 +632,7 @@ function renderOver(){
     bar.innerHTML=barHTML(gsp,gpl);
     const subs=el("div","subs"+(openGroups[g]?" open":""));
     cs.forEach(c=>{
-      const s=sp[c.id]||0,pl=c.hidden?0:(+c.plan||0);
+      const s=sp[c.id]||0,pl=planOf(c,month);
       if(!s&&!pl)return;
       const r=el("div","sub");
       r.innerHTML='<span class="nm">'+esc(c.name)+'</span>'+
@@ -652,7 +676,7 @@ function renderOver(){
       const [yy,mm]=k.split("-");
       const b=el("button","trend"+(k===month?" cur":""));
       b.innerHTML='<span class="m">'+SHORT[+mm-1]+" "+yy.slice(2)+'</span>'+
-        '<span class="bar">'+barHTML(byM[k],planTotal())+'</span>'+
+        '<span class="bar">'+barHTML(byM[k],planTotal(k))+'</span>'+
         '<span class="v">'+eur(byM[k])+'</span>';
       b.onclick=()=>{month=k;renderOver();renderHist();renderDiff();};
       tb.appendChild(b);
@@ -696,7 +720,7 @@ function renderOver(){
 function renderDiff(){
   const l=$("#mLbl3");if(l)l.textContent=monthLbl(month);
   const b=$("#diffBody");if(!b)return;b.innerHTML="";
-  const sp=spentBy(month), plan=planTotal();
+  const sp=spentBy(month), plan=planTotal(month);
   const spent=Object.values(sp).reduce((a,x)=>a+x,0);
   const raz=plan-spent;
 
@@ -713,7 +737,7 @@ function renderDiff(){
 
   const cez=[],znotraj=[],brez=[];
   D.cats.forEach(c=>{
-    const v=sp[c.id]||0, pl=c.hidden?0:(+c.plan||0);
+    const v=sp[c.id]||0, pl=planOf(c,month);
     if(pl>0&&v>pl)cez.push([c,v,pl]);
     else if(pl>0)znotraj.push([c,v,pl]);
     else if(v>0)brez.push([c,v,0]);
@@ -969,12 +993,30 @@ function obnoviPosnetek(){
 
 /* ---------- PLAN ---------- */
 function renderPlan(){
+  const l4=$("#mLbl4");if(l4)l4.textContent=monthLbl(month);
   const b=$("#planBody");b.innerHTML="";
   const head=el("div","card");
-  head.innerHTML='<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600">Mesečni plan skupaj</div>'+
-    '<div class="num" style="font-size:28px;font-weight:650;margin-top:5px">'+eur(planTotal())+'</div>'+
-    '<div class="hint">Plan velja za vsak mesec. Spremeni številko in shrani se sama.</div>';
+  const lasten=planLasten(month);
+  const ks=planKeys().filter(k=>k<=month);
+  const izvor=ks.length?ks[ks.length-1]:null;
+  head.innerHTML='<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600">Plan za '+monthLbl(month)+'</div>'+
+    '<div class="num" style="font-size:28px;font-weight:650;margin-top:5px">'+eur(planTotal(month))+'</div>'+
+    '<div class="hint">'+(lasten
+      ? "Ta mesec ima svoj plan. Prejšnji meseci ostanejo nespremenjeni."
+      : (izvor?"Podedovan iz "+monthLbl(izvor)+". Ko spremeniš številko, velja od "+monthLbl(month)+" naprej."
+              :"Osnovni plan. Ko spremeniš številko, velja od "+monthLbl(month)+" naprej."))+
+    '</div>';
   b.appendChild(head);
+  if(lasten){
+    const vr=el("button","btn","Prevzemi plan prejšnjega meseca");
+    vr.onclick=()=>{
+      if(!confirm("Odstrani lasten plan za "+monthLbl(month)+". Ta mesec bo spet podedoval prejšnjega. Nadaljujem?"))return;
+      snapshot("pred spremembo plana",true);
+      delete D.plans[month];save();renderPlan();renderOver();renderDiff();
+      toast("Vrnjeno na podedovan plan");
+    };
+    b.appendChild(vr);
+  }
 
   groups().forEach(g=>{
     b.appendChild(el("div","sechead",g));
@@ -986,12 +1028,14 @@ function renderPlan(){
       nm.onclick=()=>renameCat(c.id);
       const fmtPlan=v=>(Math.round(v*100)/100).toFixed(2).replace(".",",");
       const inp=document.createElement("input");
-      inp.type="text";inp.inputMode="decimal";inp.value=fmtPlan(+c.plan||0);
+      inp.type="text";inp.inputMode="decimal";inp.value=fmtPlan(planOf(c,month));
       inp.onfocus=()=>{inp.select();};
       inp.onchange=()=>{
-        c.plan=parseFloat(String(inp.value).replace(",","."))||0;
-        inp.value=fmtPlan(c.plan);
-        save();renderPlan();renderOver();
+        const v=parseFloat(String(inp.value).replace(",","."))||0;
+        snapshot("pred spremembo plana",true);
+        planNastavi(c.id,v,month);
+        inp.value=fmtPlan(v);
+        save();renderPlan();renderOver();renderDiff();
       };
       const del=el("button","del","✕");
       del.onclick=()=>{
@@ -1152,8 +1196,8 @@ function exportMonth(){
   const tot=Object.values(sp).reduce((a,b)=>a+b,0);
   rows.push([]);
   rows.push(["SKUPAJ"].concat(cats.map(c=>(sp[c.id]||0).toFixed(2).replace(".",","))).concat([tot.toFixed(2).replace(".",","),""]));
-  rows.push(["Plan"].concat(cats.map(c=>String(c.plan||0).replace(".",","))).concat([String(planTotal()).replace(".",","),""]));
-  rows.push(["Razlika"].concat(cats.map(c=>((+c.plan||0)-(sp[c.id]||0)).toFixed(2).replace(".",","))).concat([(planTotal()-tot).toFixed(2).replace(".",","),""]));
+  rows.push(["Plan"].concat(cats.map(c=>planOf(c,month).toFixed(2).replace(".",","))).concat([planTotal(month).toFixed(2).replace(".",","),""]));
+  rows.push(["Razlika"].concat(cats.map(c=>(planOf(c,month)-(sp[c.id]||0)).toFixed(2).replace(".",","))).concat([(planTotal(month)-tot).toFixed(2).replace(".",","),""]));
   dl("stroski-"+month+".csv",rows.map(r=>r.map(q).join(";")).join("\n"));
 }
 
@@ -1174,7 +1218,7 @@ document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
 document.querySelectorAll(".monthnav button").forEach(b=>b.onclick=()=>{
   const [y,m]=month.split("-").map(Number);
   month=ym(new Date(y,m-1+ +b.dataset.m,1));
-  renderOver();renderHist();renderDiff();
+  renderOver();renderHist();renderDiff();renderPlan();
 });
 let qT;
 document.addEventListener("input",function(ev){

@@ -113,6 +113,9 @@ button{border:0;background:none;cursor:pointer;padding:0}
 .card{padding:0;margin-top:26px}
 .sechead{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--label);
   font-weight:700;margin:30px 0 10px}
+.grouphead{display:flex;align-items:baseline;justify-content:space-between;width:100%;
+  text-align:left;gap:10px}
+.grouphead .pen{color:var(--mint);font-size:9px;letter-spacing:.14em;opacity:.85}
 
 /* hero */
 .hero{padding-top:6px}
@@ -363,7 +366,7 @@ button{border:0;background:none;cursor:pointer;padding:0}
 /* podatki uvoženi iz STROŠKI.xlsx */
 const SEED={"cats":[{"g":"Trgovina – hrana","n":"Doma hrana","p":75},{"g":"Trgovina – hrana","n":"Služba hrana","p":75},{"g":"Trgovina – hrana","n":"Wolt + restavracija","p":30},{"g":"Trgovina ostalo","n":"Kozmetika","p":20},{"g":"Trgovina ostalo","n":"Zdravila","p":0},{"g":"Trgovina ostalo","n":"Čistila","p":0},{"g":"Trgovina ostalo","n":"Oblačila","p":0},{"g":"Trgovina ostalo","n":"Ostalo","p":0},{"g":"Vadba","n":"Zen Vital Reformer + fitnes","p":0},{"g":"Terapije","n":"Tjaša","p":0},{"g":"Terapije","n":"Ostalo","p":0},{"g":"Zdravstvo","n":"Dermatolog","p":0},{"g":"Zdravstvo","n":"Zobar","p":0},{"g":"Avto","n":"Gorivo","p":100},{"g":"Avto","n":"Popravila","p":0},{"g":"Avto","n":"Registracija in ostalo","p":0},{"g":"Stanovanje","n":"Najemnina","p":385},{"g":"Stanovanje","n":"Stroški","p":100},{"g":"Potovanja / izleti","n":"Potovanje","p":0},{"g":"Potovanja / izleti","n":"Izlet","p":0},{"g":"Ostali stroški","n":"Telefon","p":0},{"g":"Ostali stroški","n":"Stroški banka","p":7},{"g":"Druženja","n":"Prijatelji / družina","p":50},{"g":"Druženja","n":"Žiga","p":100},{"g":"Druženja","n":"Darila","p":0},{"g":"Ostalo","n":"Ostalo","p":50},{"g":"Ostalo","n":"Magistrska naloga","p":0},{"g":"Ostalo","n":"s.p.","p":0}],"entries":[]};
 
-const RAZLICICA="v16 · 20.8.2026";
+const RAZLICICA="v17 · 21.8.2026";
 const KEY="stroski-v2";
 const SNAP="stroski-snap";
 
@@ -1037,7 +1040,10 @@ function renderPlan(){
   }
 
   groups().forEach(g=>{
-    b.appendChild(el("div","sechead",g));
+    const gh=el("button","sechead grouphead");
+    gh.innerHTML='<span>'+esc(g)+'</span><span class="pen">preimenuj</span>';
+    gh.onclick=()=>preimenujSkupino(g);
+    b.appendChild(gh);
     const c1=el("div","card");c1.style.marginTop="6px";
     D.cats.filter(c=>c.group===g).forEach(c=>{
       const r=el("div","planrow");
@@ -1169,6 +1175,35 @@ function addCat(){
     };
   });
 }
+function preimenujSkupino(g){
+  const n=D.cats.filter(c=>c.group===g).length;
+  const predlogi=["Mesečne obveznosti","Naročnine","Fiksni stroški","Položnice","Storitve","Banka in telefon"];
+  openSheet("Preimenuj skupino",
+    '<div class="fld"><label>Ime skupine</label><input id="gn" type="text" value="'+esc(g)+'"></div>'+
+    '<div class="fld"><label>Predlogi</label><div class="catgrid" id="gp">'+
+      predlogi.map((x,i)=>'<button class="cat" data-i="'+i+'">'+esc(x)+'</button>').join("")+
+    '</div></div>'+
+    '<button class="btn primary" id="ok">Shrani</button>'+
+    '<div class="hint">Preimenovanje velja za vseh '+n+' kategorij v skupini. Vnosi in plani ostanejo nedotaknjeni, tudi v preteklih mesecih.</div>',
+    ()=>{
+    document.querySelectorAll("#gp .cat").forEach(bt=>{
+      bt.onclick=()=>{$("#gn").value=predlogi[+bt.dataset.i];};
+    });
+    $("#ok").onclick=()=>{
+      const v=$("#gn").value.trim();
+      if(!v){toast("Vpiši ime");return;}
+      if(v!==g){
+        snapshot("pred preimenovanjem skupine",true);
+        D.cats.forEach(c=>{if(c.group===g)c.group=v;});
+        if(openGroups[g]){openGroups[v]=true;delete openGroups[g];}
+        if(openCat===g)openCat=v;
+        save();
+      }
+      closeSheet();renderAll();toast("Preimenovano");
+    };
+  });
+}
+
 function renameCat(id){
   const c=catById(id);
   const n=D.entries.filter(e=>e.cat===id).length;
